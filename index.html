@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sentient Quiz — Cute Bear Theme</title>
+  <style>
+    :root{
+      --bg:#fff6f9;
+      --card:#fff0f4;
+      --accent:#ff7fbf;
+      --accent-2:#ffb6d9;
+      --muted:#8b6b7a;
+      --success:#66c185;
+      --danger:#ff6b6b;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,var(--bg),#fff);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px}
+    .wrap{width:100%;max-width:860px}
+    header.card{background:linear-gradient(90deg,var(--card),#fff);border-radius:20px;padding:18px 20px;display:flex;gap:16px;align-items:center;box-shadow:0 6px 30px rgba(255,127,191,0.12);}
+    .logo{width:76px;height:76px;flex:0 0 76px;border-radius:16px;background:linear-gradient(180deg,var(--accent-2),var(--accent));display:flex;align-items:center;justify-content:center}
+    .brand{font-weight:700;color:#6b2940}
+    .brand small{display:block;font-weight:600;color:var(--muted);font-size:12px}
+
+    .card{background:linear-gradient(180deg,#ffffffaa,var(--card));border-radius:18px;padding:22px;margin-top:18px;box-shadow:0 12px 40px rgba(163,57,111,0.08)}
+    .q-count{font-weight:600;color:var(--muted);font-size:13px}
+    .question{font-size:20px;margin:12px 0 18px;color:#512739}
+
+    .options{display:grid;grid-template-columns:1fr;gap:12px}
+    .opt{border-radius:12px;padding:12px 14px;border:2px solid transparent;background:linear-gradient(180deg,#fff,#fff0f8);cursor:pointer;transition:all .18s;box-shadow:0 6px 18px rgba(255,127,191,0.06)}
+    .opt:hover{transform:translateY(-4px);box-shadow:0 10px 30px rgba(255,127,191,0.09)}
+    .opt.selected{border-color:var(--accent)}
+    .opt.correct{background:linear-gradient(90deg,#f2fff6,#e6fff0);border-color:var(--success);}
+    .opt.wrong{background:linear-gradient(90deg,#fff6f6,#ffecec);border-color:var(--danger)}
+
+    .controls{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:12px}
+    .btn{background:var(--accent);color:white;padding:10px 14px;border-radius:12px;border:0;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(255,127,191,0.14)}
+    .btn.ghost{background:transparent;color:var(--accent);border:2px solid rgba(107,41,64,0.08)}
+    .progress{height:8px;background:#ffeaf0;border-radius:8px;overflow:hidden}
+    .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0%}
+
+    .result{display:none;text-align:center;padding:20px}
+    .result h2{margin:10px 0;color:#512739}
+    .small{font-size:13px;color:var(--muted)}
+
+    footer{margin-top:12px;text-align:center;color:var(--muted);font-size:13px}
+
+    /* responsive */
+    @media(min-width:720px){
+      .options{grid-template-columns:1fr 1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <header class="card">
+      <div class="logo" aria-hidden>
+        <!-- cute bear SVG -->
+        <svg width="52" height="52" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="64" height="64" rx="14" fill="transparent"/>
+          <g transform="translate(6,6)">
+            <circle cx="26" cy="26" r="18" fill="#fff" stroke="#ff9cc9" stroke-width="2"/>
+            <circle cx="13" cy="10" r="5" fill="#fff" stroke="#ff9cc9" stroke-width="2"/>
+            <circle cx="39" cy="10" r="5" fill="#fff" stroke="#ff9cc9" stroke-width="2"/>
+            <circle cx="20" cy="26" r="2" fill="#6b2940"/>
+            <circle cx="32" cy="26" r="2" fill="#6b2940"/>
+            <path d="M20 34c2 3 8 3 10 0" stroke="#6b2940" stroke-width="2" stroke-linecap="round"/>
+          </g>
+        </svg>
+      </div>
+      <div>
+        <div class="brand">Sentient Quiz <small>light pink • cute-bear theme</small></div>
+        <div class="small">10 questions — multiple choice — friendly for social sharing</div>
+      </div>
+    </header>
+
+    <main class="card" id="quizCard">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div class="q-count" id="qCount">Question 1 / 10</div>
+          <div class="question" id="questionText">Loading...</div>
+        </div>
+        <div style="width:36%">
+          <div class="progress" title="progress"><i id="progBar"></i></div>
+          <div style="text-align:right;font-size:12px;color:var(--muted);margin-top:6px">Score: <span id="scoreV">0</span></div>
+        </div>
+      </div>
+
+      <div class="options" id="optionsList" aria-live="polite"></div>
+
+      <div class="controls">
+        <button class="btn ghost" id="prevBtn" disabled>Previous</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn" id="checkBtn">Check</button>
+          <button class="btn ghost" id="nextBtn" disabled>Next</button>
+        </div>
+      </div>
+
+      <div class="result" id="resultBox">
+        <h2 id="resultHeading">All done!</h2>
+        <p class="small" id="resultText">You scored X / 10</p>
+        <div style="margin-top:14px;display:flex;gap:10px;justify-content:center">
+          <button class="btn" id="restartBtn">Restart</button>
+          <button class="btn ghost" id="downloadBtn">Download JSON</button>
+        </div>
+      </div>
+
+    </main>
+
+    <footer>Made with ❤ for Sentient — cute bear edition</footer>
+  </div>
+
+  <script>
+    // --- QUESTIONS (10) ---
+    const questions = [
+      { q: "What is the title of the web page from which these questions are drawn?", opts: ["Sentient Labs — Ecosystem Partners","Sentient Partners & Affiliates","Sentient Labs — Our Team","Sentient Labs — Products"], a:0 },
+      { q: "Which category of partners includes EigenLayer on the Sentient 'Partners' page?", opts: ["Blockchain Partners","Model Partners","Infra Partners","Data Consortium"], a:1 },
+      { q: "Under which partner category is Arbitrum listed on Sentient’s partners page?", opts: ["Model Partners","Data Consortium","Blockchain Partners","Infra Partners"], a:2 },
+      { q: "Which of these is listed among the Infra Partners on the Sentient 'Partners' page?", opts: ["Lit Protocol","Polygon","The Graph","Messari"], a:0 },
+      { q: "The Data Consortium section includes which of the following as a partner?", opts: ["Vana","CrunchDAO","OpenGradient","Celo"], a:0 },
+      { q: "What is the current status (stage) of Sentient Labs according to their 'Partners' page?", opts: ["Alpha","Released","Beta","Production"], a:2 },
+      { q: "What is listed as the location of Sentient Labs on the 'Partners' page?", opts: ["New York, USA","San Francisco, California, USA","London, UK","Singapore"], a:1 },
+      { q: "Which of these is a Model Partner of Sentient Labs?", opts: ["Polygon","KGEN","Lit Protocol","0G"], a:1 },
+      { q: "Which of the following is not listed under any partner categories on the Sentient 'Partners' page?", opts: ["Celo","Messari","Meta (Facebook)","KAITO"], a:2 },
+      { q: "Under which partner category is OpenGradient categorized?", opts: ["Model Partners","Infra Partners","Data Consortium","Blockchain Partners"], a:1 }
+    ];
+
+    // state
+    let idx = 0; let score = 0; let selected = null; let checked = false;
+
+    // elements
+    const qCount = document.getElementById('qCount');
+    const questionText = document.getElementById('questionText');
+    const optionsList = document.getElementById('optionsList');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const checkBtn = document.getElementById('checkBtn');
+    const progBar = document.getElementById('progBar');
+    const scoreV = document.getElementById('scoreV');
+    const resultBox = document.getElementById('resultBox');
+    const resultText = document.getElementById('resultText');
+    const restartBtn = document.getElementById('restartBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    function render(){
+      checked = false; selected = null; nextBtn.disabled = true; checkBtn.disabled = false;
+      qCount.textContent = `Question ${idx+1} / ${questions.length}`;
+      questionText.textContent = questions[idx].q;
+      optionsList.innerHTML = '';
+      questions[idx].opts.forEach((o,i)=>{
+        const div = document.createElement('button');
+        div.className = 'opt'; div.type='button'; div.innerHTML = `<div style="font-weight:600">${String.fromCharCode(65+i)}.</div><div style="margin-left:8px">${o}</div>`;
+        div.onclick = ()=>{
+          if(checked) return; selected = i; Array.from(optionsList.children).forEach(c=>c.classList.remove('selected'));
+          div.classList.add('selected'); nextBtn.disabled = false;
+        };
+        optionsList.appendChild(div);
+      });
+      prevBtn.disabled = idx===0;
+      progBar.style.width = `${Math.round((idx/questions.length)*100)}%`;
+    }
+
+    function checkAnswer(){
+      if(selected===null) return alert('Please pick an option first!');
+      checked = true; checkBtn.disabled = true; nextBtn.disabled = false;
+      const correctIdx = questions[idx].a;
+      Array.from(optionsList.children).forEach((el,i)=>{
+        el.classList.remove('selected');
+        if(i===correctIdx) el.classList.add('correct');
+        else if(i===selected && i!==correctIdx) el.classList.add('wrong');
+      });
+      if(selected===correctIdx){ score+=1; scoreV.textContent = score; }
+      // if last question, show finish on next
+      if(idx===questions.length-1){ nextBtn.textContent = 'Finish'; }
+    }
+
+    prevBtn.onclick = ()=>{
+      if(idx>0){ idx--; render(); }
+    };
+
+    nextBtn.onclick = ()=>{
+      if(!checked){ // auto-check if user didn't press check
+        checkAnswer();
+      } else {
+        if(idx < questions.length-1){ idx++; render(); }
+        else { // finished
+          showResult();
+        }
+      }
+    };
+
+    checkBtn.onclick = ()=>{ checkAnswer(); };
+
+    function showResult(){
+      document.getElementById('quizCard').querySelector('.options').style.display='none';
+      document.getElementById('quizCard').querySelector('.controls').style.display='none';
+      resultBox.style.display='block';
+      progBar.style.width='100%';
+      resultText.textContent = `You scored ${score} / ${questions.length}`;
+      resultBox.querySelector('#resultHeading').textContent = score===questions.length? 'Perfect! 🐻🎉' : 'Nice Try!';
+    }
+
+    restartBtn.onclick = ()=>{ idx=0; score=0; scoreV.textContent=0; document.getElementById('quizCard').querySelector('.options').style.display='grid'; document.getElementById('quizCard').querySelector('.controls').style.display='flex'; resultBox.style.display='none'; nextBtn.textContent='Next'; render(); };
+
+    downloadBtn.onclick = ()=>{
+      const data = {title: 'Sentient Quiz', created: new Date().toISOString(), questions};
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='sentient-quiz.json'; a.click();
+    };
+
+    // init
+    render();
+  </script>
+</body>
+</html>
